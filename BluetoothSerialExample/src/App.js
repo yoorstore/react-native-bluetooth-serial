@@ -10,14 +10,14 @@ import {
   View,
   Modal,
   ActivityIndicator,
-  Image
+  Image,
+  PermissionsAndroid
 } from 'react-native'
 
-import Toast from '@remobile/react-native-toast'
 import BluetoothSerial from 'react-native-bluetooth-serial'
 import { Buffer } from 'buffer'
 global.Buffer = Buffer
-const iconv = require('iconv-lite')
+const iconv = require('iconv-lite');
 
 const Button = ({ title, onPress, style, textStyle }) =>
   <TouchableOpacity style={[ styles.button, style ]} onPress={onPress}>
@@ -78,12 +78,12 @@ class BluetoothSerialExample extends Component {
       this.setState({ isEnabled, devices })
     })
 
-    BluetoothSerial.on('bluetoothEnabled', () => Toast.showShortBottom('Bluetooth enabled'))
-    BluetoothSerial.on('bluetoothDisabled', () => Toast.showShortBottom('Bluetooth disabled'))
+    BluetoothSerial.on('bluetoothEnabled', () => alert('Bluetooth enabled'))
+    BluetoothSerial.on('bluetoothDisabled', () => alert('Bluetooth disabled'))
     BluetoothSerial.on('error', (err) => console.log(`Error: ${err.message}`))
     BluetoothSerial.on('connectionLost', () => {
       if (this.state.device) {
-        Toast.showShortBottom(`Connection to device ${this.state.device.name} has been lost`)
+        alert(`Connection to device ${this.state.device.name} has been lost`)
       }
       this.setState({ connected: false })
     })
@@ -96,7 +96,7 @@ class BluetoothSerialExample extends Component {
   requestEnable () {
     BluetoothSerial.requestEnable()
     .then((res) => this.setState({ isEnabled: true }))
-    .catch((err) => Toast.showShortBottom(err.message))
+    .catch((err) => alert(err.message))
   }
 
   /**
@@ -106,7 +106,7 @@ class BluetoothSerialExample extends Component {
   enable () {
     BluetoothSerial.enable()
     .then((res) => this.setState({ isEnabled: true }))
-    .catch((err) => Toast.showShortBottom(err.message))
+    .catch((err) => alert(err.message))
   }
 
   /**
@@ -116,7 +116,7 @@ class BluetoothSerialExample extends Component {
   disable () {
     BluetoothSerial.disable()
     .then((res) => this.setState({ isEnabled: false }))
-    .catch((err) => Toast.showShortBottom(err.message))
+    .catch((err) => alert(err.message))
   }
 
   /**
@@ -139,12 +139,28 @@ class BluetoothSerialExample extends Component {
     if (this.state.discovering) {
       return false
     } else {
-      this.setState({ discovering: true })
-      BluetoothSerial.discoverUnpairedDevices()
-      .then((unpairedDevices) => {
-        this.setState({ unpairedDevices, discovering: false })
-      })
-      .catch((err) => Toast.showShortBottom(err.message))
+      this.setState({ discovering: true });
+      if (Platform.OS == 'android' && Platform.Version >= 23){
+        console.log('调用了这个方法');
+        PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+        ).then(granted=>{
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log("You can use the ACCESS_FINE_LOCATION")
+            BluetoothSerial.discoverUnpairedDevices().then((unpairedDevices) => {
+              this.setState({ unpairedDevices, discovering: false })
+            }).catch((err) => alert(err.message))
+          } else {
+            console.log("ACCESS_FINE_LOCATION permission denied")
+          }
+        }).catch((e)=>{
+
+        })
+      } else {
+        BluetoothSerial.discoverUnpairedDevices().then((unpairedDevices) => {
+            this.setState({ unpairedDevices, discovering: false })
+          }).catch((err) => alert(err.message))
+      }
     }
   }
 
@@ -158,7 +174,7 @@ class BluetoothSerialExample extends Component {
       .then(() => {
         this.setState({ discovering: false })
       })
-      .catch((err) => Toast.showShortBottom(err.message))
+      .catch((err) => alert(err.message))
     }
   }
 
@@ -170,15 +186,15 @@ class BluetoothSerialExample extends Component {
     BluetoothSerial.pairDevice(device.id)
     .then((paired) => {
       if (paired) {
-        Toast.showShortBottom(`Device ${device.name} paired successfully`)
+        alert(`Device ${device.name} paired successfully`)
         const devices = this.state.devices
         devices.push(device)
         this.setState({ devices, unpairedDevices: this.state.unpairedDevices.filter((d) => d.id !== device.id) })
       } else {
-        Toast.showShortBottom(`Device ${device.name} pairing failed`)
+        alert(`Device ${device.name} pairing failed`)
       }
     })
-    .catch((err) => Toast.showShortBottom(err.message))
+    .catch((err) => alert(err.message))
   }
 
   /**
@@ -189,10 +205,10 @@ class BluetoothSerialExample extends Component {
     this.setState({ connecting: true })
     BluetoothSerial.connect(device.id)
     .then((res) => {
-      Toast.showShortBottom(`Connected to device ${device.name}`)
+      alert(`Connected to device ${device.name}`)
       this.setState({ device, connected: true, connecting: false })
     })
-    .catch((err) => Toast.showShortBottom(err.message))
+    .catch((err) => alert(err.message))
   }
 
   /**
@@ -201,7 +217,7 @@ class BluetoothSerialExample extends Component {
   disconnect () {
     BluetoothSerial.disconnect()
     .then(() => this.setState({ connected: false }))
-    .catch((err) => Toast.showShortBottom(err.message))
+    .catch((err) => alert(err.message))
   }
 
   /**
@@ -222,15 +238,15 @@ class BluetoothSerialExample extends Component {
    */
   write (message) {
     if (!this.state.connected) {
-      Toast.showShortBottom('You must connect to device first')
+      alert('You must connect to device first')
     }
 
     BluetoothSerial.write(message)
     .then((res) => {
-      Toast.showShortBottom('Successfuly wrote to device')
+      alert('Successfuly wrote to device')
       this.setState({ connected: true })
     })
-    .catch((err) => Toast.showShortBottom(err.message))
+    .catch((err) => alert(err.message))
   }
 
   onDevicePress (device) {
@@ -325,6 +341,12 @@ class BluetoothSerialExample extends Component {
                 title='Request enable'
                 onPress={() => this.requestEnable()} />
             ) : null}
+            {this.state.connected
+              ? (
+                <Button
+                  title='write'
+                  onPress={() => this.write('嘻嘻啊哈哈')} />
+              ) : null}
           </ScrollView>
         </View>
       </View>
@@ -337,11 +359,11 @@ const styles = StyleSheet.create({
     flex: 0.9,
     backgroundColor: '#F5FCFF'
   },
-  topBar: { 
-    height: 56, 
+  topBar: {
+    height: 56,
     paddingHorizontal: 16,
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center' ,
     elevation: 6,
     backgroundColor: '#7B1FA2'
@@ -357,13 +379,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center'
   },
-  tab: { 
-    alignItems: 'center', 
-    flex: 0.5, 
-    height: 56, 
-    justifyContent: 'center', 
-    borderBottomWidth: 6, 
-    borderColor: 'transparent' 
+  tab: {
+    alignItems: 'center',
+    flex: 0.5,
+    height: 56,
+    justifyContent: 'center',
+    borderBottomWidth: 6,
+    borderColor: 'transparent'
   },
   connectionInfoWrapper: {
     flexDirection: 'row',

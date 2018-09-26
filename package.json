@@ -23,7 +23,8 @@
   "dependencies": {
     "buffer": "^4.6.0"
   },
-  "peerDependencies": {
-    "react-native": ">=0.40"
+  "devDependencies": {
+    "react": "16.3.1",
+    "react-native": "0.55.4"
   }
 }

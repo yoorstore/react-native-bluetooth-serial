@@ -89,7 +89,7 @@ android {
     defaultConfig {
         applicationId "com.bluetoothserialexample"
         minSdkVersion 16
-        targetSdkVersion 22
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
         ndk {
@@ -127,7 +127,6 @@ android {
 
 dependencies {
     compile project(':react-native-bluetooth-serial')
-    compile project(':@remobile/react-native-toast')
     compile fileTree(dir: "libs", include: ["*.jar"])
     compile "com.android.support:appcompat-v7:23.0.1"
     compile "com.facebook.react:react-native:+"  // From node_modules

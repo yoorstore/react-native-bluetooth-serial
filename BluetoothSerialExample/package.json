@@ -3,18 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "rm -fr $TMPDIR/react- && watchman watch-del-all && node node_modules/react-native/local-cli/cli.js start -- --reset-cache"
+    "start": "node node_modules/react-native/local-cli/cli.js start"
   },
   "dependencies": {
-    "@remobile/react-native-toast": "^1.0.4",
-    "iconv-lite": "^0.4.13",
-    "react": "^15.4.2",
-    "react-native": "^0.40.0",
+    "iconv-lite": "^0.4.24",
+    "react": "16.3.1",
+    "react-native": "0.55.4",
     "react-native-bluetooth-serial": "file:../",
-    "stream": "0.0.2"
+    "stream": "^0.0.2"
   },
-  "engines": {
-    "node": "^6.5.0",
-    "npm": "^3.10.3"
+  "devDependencies": {
+    "babel-jest": "23.4.2",
+    "babel-preset-react-native": "4.0.0",
+    "jest": "23.4.2",
+    "react-test-renderer": "16.3.1"
+  },
+  "jest": {
+    "preset": "react-native"
   }
 }
